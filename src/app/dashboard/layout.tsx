@@ -37,7 +37,6 @@ export default function DashboardLayout({
     { name: 'Manajemen Pengguna', href: '/dashboard/admin/users', icon: '👥', allowedRoles: ['ADMIN'], hoverColor: 'group-hover:text-[#ffe227]', activeBg: 'bg-[#ffe227] text-black shadow-[0_0_15px_rgba(255,226,39,0.4)] border-[#ffe227]' },
     { name: 'Audit Log Sistem', href: '/dashboard/admin/audit', icon: '📜', allowedRoles: ['ADMIN'], hoverColor: 'group-hover:text-[#ffe227]', activeBg: 'bg-[#ffe227] text-black shadow-[0_0_15px_rgba(255,226,39,0.4)] border-[#ffe227]' },
     { name: 'Jadwal Retensi', href: '/dashboard/admin/retention', icon: '⚖️', allowedRoles: ['ADMIN'], hoverColor: 'group-hover:text-[#8b5cf6]', activeBg: 'bg-[#8b5cf6] text-white shadow-[0_0_15px_rgba(139,92,246,0.4)] border-[#8b5cf6]' },
-    // 👇 FITUR BARU: MENU OTORISASI AKSES DITAMBAHKAN DI SINI
     { name: 'Otorisasi Akses', href: '/dashboard/admin/access', icon: '🛡️', allowedRoles: ['ADMIN', 'ARSIPARIS'], hoverColor: 'group-hover:text-[#f59e0b]', activeBg: 'bg-[#f59e0b] text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] border-[#f59e0b]' },
   ];
 
