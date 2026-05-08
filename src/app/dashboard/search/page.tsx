@@ -2,58 +2,104 @@
 
 import { useState, useEffect } from 'react';
 
-// Sesuai dengan archive.entity.ts
 interface Archive {
   id: string;
-  code: string; 
-  title: string;         
-  category: string;      
+  code: string;
+  title: string;
+  category: string;
+  description: string;
   fileUrl: string;
-  uploadDate: string; 
+  uploadDate: string;
+  isLegalHold?: boolean;
 }
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
-  const [category, setCategory] = useState('Semua');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('ALL');
   const [results, setResults] = useState<Archive[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState('STAFF');
 
-  const handleSearch = async () => {
+  // Ambil Role User dari Cookie (untuk proteksi arsip Vital)
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+    const roleFromCookie = getCookie('userRole');
+    if (roleFromCookie) setUserRole(roleFromCookie.toUpperCase());
+
+    // Jalankan pencarian awal (tanpa filter) saat halaman pertama dibuka
+    handleSearch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setLoading(true);
+
     try {
-      const res = await fetch(`http://localhost:3001/archives/search?q=${query}&category=${category}`);
+      let url = 'http://localhost:3001/archives/search';
+      const params = new URLSearchParams();
+      
+      if (searchQuery.trim()) params.append('q', searchQuery.trim());
+      if (category !== 'ALL') params.append('category', category);
+
+      // Jika ada parameter, gunakan endpoint search. Jika tidak, ambil semua.
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      } else {
+        url = 'http://localhost:3001/archives';
+      }
+
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        setResults(data);
-      } else {
-        setResults([]);
+        // Urutkan dari yang paling baru diupload
+        const sortedData = data.sort((a: any, b: any) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
+        setResults(sortedData);
       }
-    } catch (e) {
-      console.error("Gagal mencari:", e);
-      setResults([]);
+    } catch (error) {
+      console.error('Error fetching search results:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    handleSearch();
-  }, [category]);
+  const handleOpenDocument = (fileUrl: string) => {
+    if (!fileUrl) {
+      alert('Maaf, file PDF tidak ditemukan pada arsip ini.');
+      return;
+    }
+    const fileLink = fileUrl.startsWith('http') 
+      ? fileUrl 
+      : `http://localhost:3001${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+    window.open(fileLink, '_blank');
+  };
 
-  const getCategoryColor = (cat: string) => {
-    if (!cat) return 'bg-[#2358d8] shadow-blue-900/50';
-    const lowerCat = cat.toLowerCase();
-    if (lowerCat === 'aktif') return 'bg-[#0a8270] shadow-teal-900/50'; 
-    if (lowerCat === 'inaktif') return 'bg-[#ffe227] text-black shadow-yellow-900/50'; 
-    if (lowerCat === 'vital') return 'bg-[#eb3434] shadow-red-900/50'; 
-    return 'bg-[#2358d8] shadow-blue-900/50'; 
+  // Proteksi Frontend: Sembunyikan arsip VITAL dari akun STAFF
+  const visibleResults = results.filter(archive => {
+    if (userRole === 'STAFF' && archive.category?.toUpperCase() === 'VITAL') return false;
+    return true;
+  });
+
+  const getCategoryBadge = (cat: string, isLegalHold?: boolean) => {
+    if (isLegalHold) return 'bg-[#2358d8]/20 text-[#60a5fa] border-[#2358d8]/50 shadow-[0_0_10px_rgba(35,88,216,0.3)]';
+    const c = (cat || '').toUpperCase();
+    if (c === 'AKTIF') return 'bg-[#0a8270]/20 text-[#0a8270] border-[#0a8270]/50';
+    if (c === 'INAKTIF') return 'bg-[#ffe227]/20 text-[#ffe227] border-[#ffe227]/50';
+    if (c === 'VITAL') return 'bg-[#eb3434]/20 text-[#eb3434] border-[#eb3434]/50';
+    return 'bg-slate-800 text-slate-300 border-slate-600';
   };
 
   return (
-    <div className="text-slate-200 font-sans min-h-full animate-[fadeIn_0.5s_ease-out]">
+    <div className="space-y-8 animate-[fadeIn_0.5s_ease-out]">
       
-      <div className="mb-12 border-b border-white/5 pb-6">
-        <h1 className="text-4xl md:text-5xl font-serif text-white tracking-tight mb-2">
+      {/* HEADER */}
+      <div className="border-b border-white/5 pb-6">
+        <h1 className="text-4xl font-serif text-white tracking-tight mb-2">
           Pencarian <span className="italic text-[#ffe227]">Terpadu.</span>
         </h1>
         <p className="text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase">
@@ -61,87 +107,114 @@ export default function SearchPage() {
         </p>
       </div>
 
-      <div className="bg-[#1a1a1a] rounded-[2.5rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden mb-10">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#ffe227]/5 rounded-full blur-3xl pointer-events-none"></div>
-
+      {/* KOTAK PENCARIAN (SEARCH BOX) */}
+      <form onSubmit={handleSearch} className="bg-[#1a1a1a] rounded-[2rem] p-6 border border-white/5 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#ffe227]/5 rounded-full blur-3xl pointer-events-none"></div>
+        
         <div className="flex flex-col md:flex-row gap-4 relative z-10">
+          {/* Input Text */}
           <div className="flex-1 relative">
-            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-lg">🔍</span>
+            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl text-slate-500">🔍</span>
             <input 
               type="text" 
-              placeholder="Cari berdasarkan judul dokumen atau kode klasifikasi..."
-              className="w-full pl-14 pr-6 py-5 bg-[#111111] border border-slate-800 rounded-2xl focus:outline-none focus:border-[#ffe227] focus:ring-1 focus:ring-[#ffe227] font-mono text-sm text-white placeholder:text-slate-600 transition-all shadow-inner"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari berdasarkan judul dokumen atau kode klasifikasi..." 
+              className="w-full bg-[#111111] border border-white/5 text-white pl-14 pr-6 py-5 rounded-2xl focus:outline-none focus:border-[#ffe227] focus:ring-1 focus:ring-[#ffe227] transition-all font-mono text-sm placeholder:text-slate-600 placeholder:font-sans"
             />
           </div>
-          
+
+          {/* Dropdown Kategori */}
           <select 
-            className="px-6 py-5 bg-[#111111] border border-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest outline-none focus:border-[#ffe227] cursor-pointer shadow-inner appearance-none min-w-[200px]"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            className="bg-[#111111] border border-white/5 text-white px-8 py-5 rounded-2xl focus:outline-none focus:border-[#ffe227] focus:ring-1 focus:ring-[#ffe227] transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer"
           >
-            <option value="Semua">Semua Kategori</option>
-            <option value="Aktif">Arsip Aktif</option>
-            <option value="Inaktif">Arsip Inaktif</option>
-            <option value="Vital">Arsip Vital</option>
+            <option value="ALL">Semua Kategori</option>
+            <option value="AKTIF">Arsip Aktif</option>
+            <option value="INAKTIF">Arsip Inaktif</option>
+            <option value="VITAL">Arsip Vital</option>
           </select>
-          
+
+          {/* Tombol Cari */}
           <button 
-            onClick={handleSearch}
-            disabled={loading}
-            className="px-10 py-5 bg-[#ffe227] hover:bg-yellow-400 text-black font-black rounded-2xl transition-all shadow-lg shadow-yellow-500/10 uppercase tracking-[0.2em] text-xs hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0"
+            type="submit" 
+            className="px-10 py-5 bg-[#ffe227] hover:bg-yellow-400 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,226,39,0.2)] hover:-translate-y-1 whitespace-nowrap"
           >
-            {loading ? 'Mencari...' : 'Cari Berkas'}
+            Cari Berkas
           </button>
         </div>
-      </div>
+      </form>
 
-      <div className="space-y-4">
+      {/* AREA HASIL PENCARIAN */}
+      <div className="bg-[#1a1a1a] rounded-[2rem] border border-white/5 shadow-2xl overflow-hidden relative">
+        <div className="h-1 w-full bg-gradient-to-r from-[#ffe227] via-[#111111] to-[#ffe227] opacity-50"></div>
+        
         {loading ? (
-          <div className="text-center py-20">
-            <p className="font-serif text-xl italic tracking-widest text-[#ffe227] animate-pulse">Menelusuri brankas digital...</p>
+          <div className="p-20 text-center text-[#ffe227] font-mono text-xs uppercase tracking-widest animate-pulse">
+            Menyisir Pangkalan Data...
           </div>
-        ) : results.length > 0 ? (
-          results.map((archive) => (
-            <div key={archive.id} className="p-6 bg-[#1a1a1a] border border-white/5 rounded-[2rem] hover:border-white/20 transition-all group flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
-              
-              <div className="flex items-center gap-6 overflow-hidden w-full">
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg flex-shrink-0 transition-transform group-hover:scale-105 ${getCategoryColor(archive.category)}`}>
-                  {archive.code ? archive.code.split('.')[0] : 'ARS'}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-white text-lg truncate group-hover:text-[#ffe227] transition-colors">{archive.title}</h3>
-                  <div className="flex items-center gap-4 mt-2 flex-wrap">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500">{archive.code}</span>
-                    <span className="w-1 h-1 bg-slate-700 rounded-full"></span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{archive.category}</span>
-                    <span className="w-1 h-1 bg-slate-700 rounded-full"></span>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-slate-600">
-                      {archive.uploadDate ? new Date(archive.uploadDate).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : '-'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {archive.fileUrl && (
-                <a 
-                  href={`http://localhost:3001/uploads/${archive.fileUrl}`} 
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full md:w-auto text-center px-8 py-4 bg-[#111111] hover:bg-[#ffe227] hover:text-black text-slate-300 font-black rounded-xl text-[10px] uppercase tracking-[0.2em] transition-all border border-slate-800 hover:border-[#ffe227] flex-shrink-0"
-                >
-                  Lihat File PDF
-                </a>
-              )}
-            </div>
-          ))
+        ) : visibleResults.length === 0 ? (
+          // STATE KOSONG (EMPTY STATE) - Persis seperti Screenshotmu!
+          <div className="p-20 flex flex-col items-center justify-center text-center">
+            <span className="text-5xl mb-6 drop-shadow-2xl">📭</span>
+            <p className="text-slate-500 text-[10px] font-black tracking-widest uppercase">
+              Tidak ada arsip yang cocok dengan kata kunci.
+            </p>
+          </div>
         ) : (
-          <div className="text-center py-20 bg-[#1a1a1a] rounded-[2.5rem] border border-dashed border-slate-800">
-            <span className="text-4xl block mb-4">📭</span>
-            <p className="text-slate-500 font-mono text-xs uppercase tracking-[0.2em]">Tidak ada arsip yang cocok dengan kata kunci.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#111111] border-b border-white/5">
+                  <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Konteks Arsip</th>
+                  <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Kategori</th>
+                  <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Tanggal Registrasi</th>
+                  <th className="p-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {visibleResults.map((archive) => (
+                  <tr key={archive.id} className="hover:bg-white/5 transition-colors group">
+                    <td className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-[#ffe227]/10 border border-[#ffe227]/30 flex items-center justify-center text-[#ffe227] font-bold text-xs shadow-inner">
+                          {archive.code?.split('.')[0] || '-'}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            {archive.isLegalHold && <span title="Dibekukan secara Hukum">❄️</span>}
+                            <p className="text-white font-semibold text-sm">{archive.title}</p>
+                          </div>
+                          <p className="text-slate-500 text-[10px] font-mono uppercase tracking-widest">
+                            KODE: {archive.code || 'TIDAK ADA'}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-6">
+                      <span className={`px-3 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest ${getCategoryBadge(archive.category, archive.isLegalHold)}`}>
+                        {archive.isLegalHold ? 'LEGAL HOLD' : archive.category || 'AKTIF'}
+                      </span>
+                    </td>
+                    <td className="p-6 font-mono text-xs text-slate-400">
+                      {new Date(archive.uploadDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="p-6 text-right">
+                      {/* Kalau Staf, mereka hanya bisa melihat jika diizinkan (atau diarahkan ke halaman daftar arsip). 
+                          Untuk mempermudah demo, kita buat tombol buka langsung, 
+                          atau Admin bisa membukanya. */}
+                      <button 
+                        onClick={() => handleOpenDocument(archive.fileUrl)}
+                        className="px-5 py-2 bg-transparent border border-[#ffe227]/50 text-[#ffe227] hover:bg-[#ffe227] hover:text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                      >
+                        Lihat Berkas
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

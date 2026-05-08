@@ -29,16 +29,18 @@ export default function ArchivesListPage() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string>('STAFF');
 
+  // STATE: Modal Edit (Admin)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editData, setEditData] = useState<Partial<Archive>>({});
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // STATE: Modal Pengajuan Akses (Staf)
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
   const [selectedAccessArchive, setSelectedAccessArchive] = useState<Archive | null>(null);
   const [accessReason, setAccessReason] = useState('');
   const [isSubmittingAccess, setIsSubmittingAccess] = useState(false);
 
-  // STATE BARU: Modal Legal Hold
+  // STATE: Modal Legal Hold (Admin)
   const [isHoldModalOpen, setIsHoldModalOpen] = useState(false);
   const [selectedHoldArchive, setSelectedHoldArchive] = useState<Archive | null>(null);
   const [holdReason, setHoldReason] = useState('');
@@ -122,6 +124,7 @@ export default function ArchivesListPage() {
     }
   };
 
+  // --- FUNGSI EDIT METADATA ---
   const openEditModal = (archive: Archive) => {
     if (userRole === 'STAFF') return;
     setEditData(archive);
@@ -183,7 +186,7 @@ export default function ArchivesListPage() {
     }
   };
 
-  // --- FUNGSI AKSES STAF ---
+  // --- FUNGSI PENGAJUAN AKSES STAF ---
   const openAccessModal = (archive: Archive) => {
     setSelectedAccessArchive(archive);
     setIsAccessModalOpen(true);
@@ -200,7 +203,10 @@ export default function ArchivesListPage() {
         body: JSON.stringify({ archiveId: selectedAccessArchive.id, archiveTitle: selectedAccessArchive.title, staffName: 'Akun Staf', reason: accessReason }),
       });
       if (res.ok) {
-        alert('Pengajuan berhasil.'); setIsAccessModalOpen(false); setAccessReason(''); fetchData();
+        alert('Pengajuan berhasil. Silakan cek Dashboard untuk melihat status tiket.'); 
+        setIsAccessModalOpen(false); 
+        setAccessReason(''); 
+        fetchData();
       }
     } catch (error) {} finally { setIsSubmittingAccess(false); }
   };
@@ -211,7 +217,6 @@ export default function ArchivesListPage() {
   });
 
   const getCategoryBadge = (archive: Archive) => {
-    // Jika sedang dibekukan, tampilkan badge es
     if (archive.isLegalHold) return 'bg-[#2358d8]/20 text-[#60a5fa] border-[#2358d8]/50 shadow-[0_0_10px_rgba(35,88,216,0.5)]';
     
     const cat = (archive.category || '').toUpperCase();
@@ -294,15 +299,14 @@ export default function ArchivesListPage() {
                                 <button onClick={() => handleOpenDocument(archive, accessInfo.requestId)} className="px-5 py-2 bg-[#0a8270] hover:bg-teal-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">📄 Buka Dokumen</button>
                               )}
                               {accessInfo.status === 'PENDING' && (
-                                <button disabled className="px-5 py-2 bg-slate-800 text-slate-400 border border-slate-600 rounded-lg text-[9px] font-black uppercase tracking-widest opacity-70 cursor-not-allowed">⏳ Menunggu Izin</button>
+                                <button disabled className="px-5 py-2 bg-slate-800 text-slate-400 border border-slate-600 rounded-lg text-[9px] font-black uppercase tracking-widest opacity-70 cursor-not-allowed flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse"></span> Menunggu</button>
                               )}
                               {accessInfo.status === 'NONE' && (
-                                <button onClick={() => openAccessModal(archive)} className="px-5 py-2 bg-[#f59e0b]/20 hover:bg-[#f59e0b] text-[#f59e0b] hover:text-black border border-[#f59e0b]/50 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">🔒 Ajukan Akses</button>
+                                <button onClick={() => openAccessModal(archive)} className="px-5 py-2 bg-[#f59e0b]/20 hover:bg-[#f59e0b] text-[#f59e0b] hover:text-black border border-[#f59e0b]/50 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1">🔒 Ajukan Akses</button>
                               )}
                             </>
                           ) : (
                             <>
-                              {/* TOMBOL LEGAL HOLD */}
                               {archive.isLegalHold ? (
                                 <button onClick={() => handleUnfreeze(archive)} className="w-8 h-8 rounded-lg bg-[#2358d8]/20 hover:bg-[#2358d8] flex items-center justify-center text-[#60a5fa] hover:text-white border border-[#2358d8]/50 transition-colors shadow-[0_0_10px_rgba(35,88,216,0.3)]" title="Cabut Pembekuan (Unfreeze)">🧊</button>
                               ) : (
@@ -311,8 +315,6 @@ export default function ArchivesListPage() {
                               
                               <button onClick={() => handleOpenDocument(archive)} className="w-8 h-8 rounded-lg bg-[#111111] hover:bg-[#2358d8]/20 flex items-center justify-center text-slate-400 hover:text-[#2358d8] border border-white/5 hover:border-[#2358d8]/50 transition-colors" title="Buka Dokumen PDF">📄</button>
                               <button onClick={() => openEditModal(archive)} className="w-8 h-8 rounded-lg bg-[#111111] hover:bg-[#ffe227]/20 flex items-center justify-center text-slate-400 hover:text-[#ffe227] border border-white/5 hover:border-[#ffe227]/50 transition-colors" title="Edit Metadata">✏️</button>
-                              
-                              {/* TOMBOL MUSNAHKAN (Akan dicegat jika dibekukan) */}
                               <button onClick={() => handleDelete(archive)} className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-colors ${archive.isLegalHold ? 'bg-slate-900 text-slate-700 border-slate-800 cursor-not-allowed' : 'bg-[#111111] hover:bg-[#eb3434]/20 text-slate-400 hover:text-[#eb3434] border-white/5 hover:border-[#eb3434]/50'}`} title="Musnahkan">🗑️</button>
                             </>
                           )}
@@ -327,26 +329,46 @@ export default function ArchivesListPage() {
         </div>
       </div>
 
-      {/* --- MODAL EDIT (Disingkat untuk fokus ke fitur baru) --- */}
+      {/* --- MODAL EDIT (ADMIN) --- */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
-           {/* ... (Isi Form Edit Sama Persis Seperti Sebelumnya) ... */}
-           <div className="bg-[#1a1a1a] rounded-[2rem] border border-white/10 p-8 w-full max-w-2xl shadow-2xl relative">
-              <h2 className="text-2xl font-serif text-white mb-2">Edit Metadata</h2>
-              <form onSubmit={handleUpdateSubmit} className="space-y-4">
-                 <input type="text" value={editData.title || ''} onChange={(e) => setEditData({...editData, title: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded border border-white/10" placeholder="Judul" />
-                 <input type="text" value={editData.code || ''} onChange={(e) => setEditData({...editData, code: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded border border-white/10" placeholder="Kode" />
-                 <input type="date" value={editData.retentionDate ? editData.retentionDate.split('T')[0] : ''} onChange={(e) => setEditData({...editData, retentionDate: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded border border-white/10" />
-                 <div className="flex justify-end gap-2 mt-4">
-                    <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 text-slate-400">Batal</button>
-                    <button type="submit" className="px-4 py-2 bg-[#ffe227] text-black rounded font-bold">Simpan</button>
-                 </div>
-              </form>
-           </div>
+          <div className="bg-[#1a1a1a] rounded-[2rem] border border-white/10 p-8 w-full max-w-2xl shadow-2xl relative">
+            <h2 className="text-2xl font-serif text-white mb-2">Edit Metadata <span className="italic text-[#ffe227]">Arsip.</span></h2>
+            <form onSubmit={handleUpdateSubmit} className="space-y-4 mt-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Kode Arsip</label>
+                  <input type="text" value={editData.code || ''} onChange={(e) => setEditData({...editData, code: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded-xl border border-white/10 focus:border-[#ffe227] focus:outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Kategori</label>
+                  <select value={editData.category || ''} onChange={(e) => setEditData({...editData, category: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded-xl border border-white/10 focus:border-[#ffe227] focus:outline-none appearance-none">
+                    <option value="Aktif">Aktif</option>
+                    <option value="Inaktif">Inaktif</option>
+                    <option value="Vital">Vital</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Judul Arsip</label>
+                <input type="text" value={editData.title || ''} onChange={(e) => setEditData({...editData, title: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded-xl border border-white/10 focus:border-[#ffe227] focus:outline-none" />
+              </div>
+              <div>
+                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1 block">Batas Jadwal Retensi (JRA)</label>
+                <input type="date" value={editData.retentionDate ? editData.retentionDate.split('T')[0] : ''} onChange={(e) => setEditData({...editData, retentionDate: e.target.value})} className="w-full bg-[#111111] text-white p-3 rounded-xl border border-white/10 focus:border-[#ffe227] focus:outline-none" />
+              </div>
+              <div className="flex justify-end gap-3 mt-8">
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-6 py-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-colors">Batal</button>
+                <button type="submit" disabled={isUpdating} className="px-6 py-3 bg-[#ffe227] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-yellow-400 transition-colors disabled:opacity-50">
+                  {isUpdating ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* --- MODAL BARU: LEGAL HOLD --- */}
+      {/* --- MODAL LEGAL HOLD (ADMIN) --- */}
       {isHoldModalOpen && selectedHoldArchive && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
           <div className="bg-[#1a1a1a] border border-blue-900/50 rounded-[2rem] w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(35,88,216,0.2)] transform transition-all">
@@ -396,7 +418,55 @@ export default function ArchivesListPage() {
         </div>
       )}
 
-      {/* --- MODAL PENGAJUAN AKSES (Tetap Sama) --- */}
+      {/* --- MODAL PENGAJUAN AKSES (STAF) --- */}
+      {isAccessModalOpen && selectedAccessArchive && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-[#1a1a1a] border border-[#f59e0b]/30 rounded-[2rem] w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(245,158,11,0.1)] transform transition-all">
+            <div className="h-1 w-full bg-gradient-to-r from-[#f59e0b] to-[#fbbf24]"></div>
+            
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-2xl font-serif text-white mb-1 flex items-center gap-2"><span className="text-3xl">🔒</span> Formulir <span className="italic text-[#f59e0b]">Akses.</span></h2>
+                  <p className="text-slate-500 text-[10px] font-black tracking-widest uppercase">Pengajuan Izin Peminjaman Dokumen</p>
+                </div>
+                <button onClick={() => setIsAccessModalOpen(false)} className="text-slate-500 hover:text-white text-xl">✕</button>
+              </div>
+
+              <div className="mb-6 p-4 bg-[#111111] rounded-xl border border-white/5">
+                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-1">Dokumen yang Diajukan:</p>
+                <p className="text-white font-mono text-sm">{selectedAccessArchive.code} - {selectedAccessArchive.title}</p>
+              </div>
+
+              <form onSubmit={handleAccessSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">
+                    Alasan Peminjaman / Keperluan
+                  </label>
+                  <textarea 
+                    required
+                    rows={3}
+                    value={accessReason}
+                    onChange={(e) => setAccessReason(e.target.value)}
+                    placeholder="Contoh: Untuk keperluan rapat audit internal..."
+                    className="w-full bg-[#111111] border border-white/5 text-white px-4 py-3.5 rounded-xl focus:outline-none focus:border-[#f59e0b] focus:ring-1 focus:ring-[#f59e0b] transition-colors font-mono text-sm resize-none"
+                  ></textarea>
+                </div>
+
+                <div className="flex gap-4 pt-2">
+                  <button type="button" onClick={() => setIsAccessModalOpen(false)} className="flex-1 py-3.5 bg-transparent border border-slate-700 text-slate-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
+                    Batal
+                  </button>
+                  <button type="submit" disabled={isSubmittingAccess} className="flex-1 py-3.5 bg-[#f59e0b] hover:bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-yellow-900/20 disabled:opacity-50">
+                    {isSubmittingAccess ? 'Mengirim...' : 'Kirim Pengajuan'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

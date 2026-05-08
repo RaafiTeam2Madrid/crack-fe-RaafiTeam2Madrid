@@ -58,7 +58,7 @@ export default function DisposalPage() {
         });
 
         if (res.ok) {
-          alert('Arsip berhasil dimusnahkan secara logis. Cek tab Berita Acara.');
+          alert('Arsip berhasil dimusnahkan. Cek tab Berita Acara.');
           fetchData(); 
         } else {
           alert('Gagal mengeksekusi pemusnahan.');
