@@ -41,7 +41,7 @@ export default function SearchPage() {
     setLoading(true);
 
     try {
-      let url = 'http://localhost:3001/archives/search';
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/archives/search`;
       const params = new URLSearchParams();
       
       if (searchQuery.trim()) params.append('q', searchQuery.trim());
@@ -51,7 +51,7 @@ export default function SearchPage() {
       if (params.toString()) {
         url += `?${params.toString()}`;
       } else {
-        url = 'http://localhost:3001/archives';
+        url = `${process.env.NEXT_PUBLIC_API_URL}/archives`;
       }
 
       const res = await fetch(url);

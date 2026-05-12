@@ -24,13 +24,13 @@ export default function DisposalPage() {
 
   const fetchData = async () => {
     try {
-      const resActive = await fetch('http://localhost:3001/archives');
+      const resActive = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives`);
       if (resActive.ok) {
         const data = await resActive.json();
         setArchives(data);
       }
 
-      const resDestroyed = await fetch('http://localhost:3001/archives/destroyed');
+      const resDestroyed = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives/destroyed`);
       if (resDestroyed.ok) {
         const data = await resDestroyed.json();
         setDestroyedArchives(data);

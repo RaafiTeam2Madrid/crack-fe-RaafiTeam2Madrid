@@ -18,7 +18,7 @@ export default function AccessApprovalPage() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch('http://localhost:3001/access-requests');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access-requests`);
       if (res.ok) {
         const data = await res.json();
         setRequests(data);

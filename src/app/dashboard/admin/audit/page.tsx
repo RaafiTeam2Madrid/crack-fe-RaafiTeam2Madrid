@@ -19,7 +19,7 @@ export default function AuditLogPage() {
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch('http://localhost:3001/audit-logs');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audit-logs`);
       if (response.ok) {
         const data = await response.json();
         const sortedData = data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

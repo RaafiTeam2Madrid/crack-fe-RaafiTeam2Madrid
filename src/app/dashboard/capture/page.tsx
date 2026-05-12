@@ -14,7 +14,7 @@ export default function CapturePage() {
   // Fungsi Helper untuk mengirim log
   const sendAuditLog = async (action: string, targetId: string, details: string) => {
     try {
-      await fetch('http://localhost:3001/audit-logs', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audit-logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -47,7 +47,7 @@ export default function CapturePage() {
     if (file) formData.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:3001/archives', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives`, {
         method: 'POST',
         body: formData, 
       });

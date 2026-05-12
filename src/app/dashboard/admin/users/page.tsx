@@ -21,7 +21,7 @@ export default function UserManagementPage() {
     const fetchUsers = async () => {
       try {
         // Langsung menelepon controller backend aslimu!
-        const res = await fetch('http://localhost:3001/users'); 
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`); 
         
         if (res.ok) {
           const data = await res.json();

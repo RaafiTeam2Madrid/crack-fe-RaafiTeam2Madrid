@@ -49,8 +49,8 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         const [resArchives, resRequests] = await Promise.all([
-          fetch('http://localhost:3001/archives'),
-          fetch('http://localhost:3001/access-requests')
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/access-requests`)
         ]);
 
         if (resArchives.ok) setArchives(await resArchives.json());

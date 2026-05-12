@@ -32,7 +32,7 @@ export default function JRAPage() {
 
   const fetchRetentionRules = async () => {
     try {
-      const res = await fetch('http://localhost:3001/retentions');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/retentions`);
       if (res.ok) {
         const data = await res.json();
         setRules(Array.isArray(data) ? data : []);
@@ -89,7 +89,7 @@ export default function JRAPage() {
       // --- TAMBAHAN: Logika URL & Method (POST untuk baru, PUT untuk edit) ---
       const url = editingId 
         ? `http://localhost:3001/retentions/${editingId}` 
-        : 'http://localhost:3001/retentions';
+        : `${process.env.NEXT_PUBLIC_API_URL}/retentions`;
       
       const method = editingId ? 'PUT' : 'POST';
 
