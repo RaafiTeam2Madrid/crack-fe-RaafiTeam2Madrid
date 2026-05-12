@@ -206,7 +206,7 @@ export default function DashboardPage() {
              <h3 className="text-[#f59e0b] font-bold mb-1 flex items-center gap-2">⚠️ Perhatian: Ada {pendingRequestsAdmin.length} Permintaan Akses Baru!</h3>
              <p className="text-slate-400 text-sm">Staf menunggu persetujuan Anda untuk membuka dokumen.</p>
            </div>
-           <Link href="/dashboard/access-requests" className="mt-4 md:mt-0 px-5 py-2.5 bg-[#f59e0b] text-black rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-yellow-400 transition-colors">
+           <Link href="/dashboard/admin/access" className="mt-4 md:mt-0 px-5 py-2.5 bg-[#f59e0b] text-black rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-yellow-400 transition-colors">
              Tinjau Sekarang
            </Link>
         </div>

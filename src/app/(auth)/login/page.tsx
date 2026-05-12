@@ -108,15 +108,15 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full mt-4 px-6 py-5 bg-[#ffe227] hover:bg-yellow-400 text-black rounded-2xl font-black shadow-lg shadow-yellow-500/10 tracking-[0.2em] uppercase text-xs transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0">
-              {loading ? 'Memverifikasi...' : 'Otorisasi Masuk'}
+              {loading ? 'Memverifikasi...' : 'Loading'}
             </button>
           </form>
 
           <div className="mt-10 pt-8 border-t border-white/5 flex flex-col items-center gap-4">
             <p className="text-slate-500 text-[10px] font-black tracking-[0.2em] uppercase">
-              Belum memiliki akses? <Link href="/register" className="text-[#ffe227] hover:text-white transition-colors ml-2">Daftar Kredensial Baru</Link>
+              Belum memiliki akses? <Link href="/register" className="text-[#ffe227] hover:text-white transition-colors ml-2">Daftar Akun Baru</Link>
             </p>
-            <Link href="/" className="text-slate-600 hover:text-white text-[9px] font-black tracking-[0.2em] uppercase transition-colors">← Kembali ke Beranda</Link>
+            <Link href="/" className="text-slate-600 hover:text-white text-[9px] font-black tracking-[0.2em] uppercase transition-colors">Kembali ke Beranda</Link>
           </div>
         </div>
 
