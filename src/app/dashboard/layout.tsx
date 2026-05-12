@@ -22,8 +22,11 @@ export default function DashboardLayout({
     };
 
     const role = getCookie('userRole');
-    setUserRole(role.toUpperCase());
-  }, []);
+    // Pengecekan aman agar tidak terjadi error "undefined"
+    if (role) {
+      setUserRole(role.toUpperCase());
+    }
+  }, []); // <-- PENUTUP KURUNG SUDAH DIPERBAIKI DI SINI
 
   const menuItems = [
     { name: 'Dashboard', href: '/dashboard', icon: '📊', allowedRoles: ['ADMIN', 'ARSIPARIS', 'STAFF'], hoverColor: 'group-hover:text-[#eb3434]', activeBg: 'bg-[#eb3434] text-white shadow-[0_0_15px_rgba(235,52,52,0.4)] border-[#eb3434]' },
@@ -40,9 +43,7 @@ export default function DashboardLayout({
     { name: 'Otorisasi Akses', href: '/dashboard/admin/access', icon: '🛡️', allowedRoles: ['ADMIN', 'ARSIPARIS'], hoverColor: 'group-hover:text-[#f59e0b]', activeBg: 'bg-[#f59e0b] text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] border-[#f59e0b]' },
   ];
 
-  const filteredOperasional = menuItems.filter(item => item.allowedRoles.includes(userRole));
-  const filteredAdmin = adminItems.filter(item => item.allowedRoles.includes(userRole));
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderLink = (item: any) => {
     const isActive = pathname === item.href;
     return (
@@ -64,6 +65,9 @@ export default function DashboardLayout({
       </Link>
     );
   };
+
+  const filteredOperasional = menuItems.filter(item => item.allowedRoles.includes(userRole));
+  const filteredAdmin = adminItems.filter(item => item.allowedRoles.includes(userRole));
 
   return (
     <div className="flex h-screen bg-[#111111] overflow-hidden font-sans selection:bg-[#ffe227] selection:text-black">
