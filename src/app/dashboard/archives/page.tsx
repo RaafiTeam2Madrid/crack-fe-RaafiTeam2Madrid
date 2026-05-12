@@ -101,13 +101,13 @@ export default function ArchivesListPage() {
     }
     const fileLink = archive.fileUrl.startsWith("http")
       ? archive.fileUrl
-      : `http://localhost:3001${archive.fileUrl.startsWith("/") ? "" : "/"}${archive.fileUrl}`;
+      : `${process.env.NEXT_PUBLIC_API_URL}${archive.fileUrl.startsWith("/") ? "" : "/"}${archive.fileUrl}`;
     window.open(fileLink, "_blank");
 
     if (accessRequestId) {
       try {
         await fetch(
-          `http://localhost:3001/access-requests/${accessRequestId}/status`,
+          `${process.env.NEXT_PUBLIC_API_URL}/access-requests/${accessRequestId}/status`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -137,7 +137,7 @@ export default function ArchivesListPage() {
     ) {
       try {
         const res = await fetch(
-          `http://localhost:3001/archives/${archive.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/archives/${archive.id}`,
           { method: "DELETE" },
         );
         if (res.ok) fetchData();
@@ -160,7 +160,7 @@ export default function ArchivesListPage() {
     if (!editData.id) return;
     setIsUpdating(true);
     try {
-      const res = await fetch(`http://localhost:3001/archives/${editData.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives/${editData.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -194,7 +194,7 @@ export default function ArchivesListPage() {
     setIsSubmittingHold(true);
     try {
       const res = await fetch(
-        `http://localhost:3001/archives/${selectedHoldArchive.id}/legal-hold`,
+        `${process.env.NEXT_PUBLIC_API_URL}/archives/${selectedHoldArchive.id}/legal-hold`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -220,7 +220,7 @@ export default function ArchivesListPage() {
       )
     ) {
       try {
-        await fetch(`http://localhost:3001/archives/${archive.id}/legal-hold`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives/${archive.id}/legal-hold`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ isLegalHold: false, reason: "" }),

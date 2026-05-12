@@ -45,7 +45,7 @@ export default function AccessApprovalPage() {
 
   const handleAction = async (id: string, action: 'APPROVED' | 'REJECTED') => {
     try {
-      const res = await fetch(`http://localhost:3001/access-requests/${id}/status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/access-requests/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: action }),

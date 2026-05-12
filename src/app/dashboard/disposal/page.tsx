@@ -53,7 +53,7 @@ export default function DisposalPage() {
     
     if (confirm(confirmMessage)) {
       try {
-        const res = await fetch(`http://localhost:3001/archives/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives/${id}`, {
           method: 'DELETE',
         });
 

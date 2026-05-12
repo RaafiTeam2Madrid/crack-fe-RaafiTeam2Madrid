@@ -88,7 +88,7 @@ export default function JRAPage() {
 
       // --- TAMBAHAN: Logika URL & Method (POST untuk baru, PUT untuk edit) ---
       const url = editingId 
-        ? `http://localhost:3001/retentions/${editingId}` 
+        ? `${process.env.NEXT_PUBLIC_API_URL}/retentions/${editingId}` 
         : `${process.env.NEXT_PUBLIC_API_URL}/retentions`;
       
       const method = editingId ? 'PUT' : 'POST';

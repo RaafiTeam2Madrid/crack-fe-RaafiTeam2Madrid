@@ -75,7 +75,7 @@ export default function SearchPage() {
     }
     const fileLink = fileUrl.startsWith('http') 
       ? fileUrl 
-      : `http://localhost:3001${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+      : `${process.env.NEXT_PUBLIC_API_URL}${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
     window.open(fileLink, '_blank');
   };
 
