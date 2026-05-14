@@ -11,15 +11,30 @@ export default function CapturePage() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // 🚀 FUNGSI HELPER UNTUK MENGAMBIL TIKET DARI BRANKAS (COOKIES)
+  const getCookie = (name: string) => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+    return null;
+  };
+
   // Fungsi Helper untuk mengirim log
   const sendAuditLog = async (action: string, targetId: string, details: string) => {
     try {
+      const token = getCookie('accessToken');
+      const userName = getCookie('userName') ? decodeURIComponent(getCookie('userName') as string) : 'Admin';
+
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/audit-logs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}) // 👈 Menyelipkan tiket ke Satpam
+        },
         body: JSON.stringify({
           action: action,
-          performedBy: 'Aditya Admin', // Menggunakan nama Admin yang sudah kita buat
+          performedBy: userName, // 👈 Sekarang namanya dinamis sesuai yang Login!
           targetId: targetId,
           details: details
         })
@@ -47,8 +62,15 @@ export default function CapturePage() {
     if (file) formData.append('file', file);
 
     try {
+      const token = getCookie('accessToken');
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/archives`, {
         method: 'POST',
+        headers: {
+          // Catatan: Jangan set Content-Type secara manual saat mengirim FormData, 
+          // browser akan mengaturnya otomatis beserta boundary-nya.
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}) // 👈 Menyelipkan tiket ke Satpam
+        },
         body: formData, 
       });
 

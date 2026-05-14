@@ -25,6 +25,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // 🚀 INI JURUS BYPASS-NYA (Langsung tembak ke localhost:3001)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,17 +33,28 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
-
+      
       if (response.ok) {
-        document.cookie = `accessToken=${data.accessToken}; path=/`;
-        const userRole = data.role || data.user?.role || 'STAFF';
-        document.cookie = `userRole=${userRole}; path=/`;
+        // 🚀 TANGKAP TIKET ASLI DARI BACKEND
+        // Mengamankan token entah backend mengirimnya sebagai access_token atau accessToken
+        const realToken = data.access_token || data.token || data.accessToken;
         
+        // Simpan tiket dan data user ke brankas (Cookies) dengan masa aktif 1 hari (86400 detik)
+        document.cookie = `accessToken=${realToken}; path=/; max-age=86400`;
+        
+        const userRole = data.role || data.user?.role || 'STAFF';
+        document.cookie = `userRole=${userRole}; path=/; max-age=86400`;
+        
+        const userName = data.name || data.user?.name || 'Admin';
+        document.cookie = `userName=${userName}; path=/; max-age=86400`;
+        
+        // Pindah ke Dashboard
         router.push('/dashboard');
       } else {
         alert(data.message || 'Kredensial tidak valid. Silakan periksa kembali Email atau Kata Sandi Anda.');
       }
     } catch (error) {
+      console.error('Login Error:', error);
       alert('Gagal terhubung ke pangkalan data keamanan.');
     } finally {
       setLoading(false);
@@ -108,7 +120,7 @@ export default function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full mt-4 px-6 py-5 bg-[#ffe227] hover:bg-yellow-400 text-black rounded-2xl font-black shadow-lg shadow-yellow-500/10 tracking-[0.2em] uppercase text-xs transition-all hover:-translate-y-1 disabled:opacity-50 disabled:hover:translate-y-0">
-              {loading ? 'Memverifikasi...' : 'Loading'}
+              {loading ? 'Memverifikasi...' : 'Masuk'}
             </button>
           </form>
 
